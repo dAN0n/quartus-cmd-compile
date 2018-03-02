@@ -1,0 +1,80 @@
+@ECHO OFF
+SETLOCAL ENABLEEXTENSIONS
+
+rem TODO моделсим часть
+
+:: FIND MODELSIM DIRECTORY
+SET MODELSIM_DIR=%QUARTUS_ROOTDIR:~0,-1%
+FOR %%A in ("%MODELSIM_DIR%") DO SET MODELSIM_DIR=%%~dpA
+SET MODELSIM_DIR=%MODELSIM_DIR%modelsim_ase\win32aloem
+:: FIND QUARTUS DIRECTORY
+SET QUARTUS_DIR=%QUARTUS_ROOTDIR%\bin64
+
+FOR %%A IN ("" "-h") DO IF "%~1"==%%A GOTO HELP
+
+:: PLACE THIS BATCH FILE IN PROJECTS ROOT DIRECTORY
+SET BATCH_DIR=%~dp0
+SET CREATE_PROJECT_TCL=%BATCH_DIR%quar.tcl
+SET PROJECT_DIR=%BATCH_DIR%%1
+SET PROJECT_NAME=%~1
+SHIFT
+
+:: IF EXECUTED WITHOUT ARGUMENTS
+:ARGUMENTS
+IF "%~1"=="" (
+    GOTO ENDARGUMENTS
+)^
+ELSE IF "%~1"=="-a" (
+    SET QUARTUS_ARCHIVE=-archive
+    SHIFT
+)^
+ELSE IF "%~1"=="-c" (
+    SET QUARTUS_COMPILE=-compile
+    SHIFT
+)^
+ELSE IF "%~1"=="-d" (
+    IF NOT "%~2"=="" SET PROJECT_DIR=%~2\%PROJECT_NAME%
+    SHIFT
+)^
+ELSE IF "%~1"=="-f" (
+    IF NOT "%~2"=="" SET QUARTUS_FILES=%~2
+    SHIFT
+)^
+ELSE IF "%~1"=="-h" (
+    GOTO HELP
+)^
+ELSE IF "%~1"=="-s" (
+    SET QUARTUS_COMPILE=-analysis
+    SHIFT
+)^
+ELSE (
+    SHIFT
+)
+GOTO ARGUMENTS
+:ENDARGUMENTS
+
+IF "%QUARTUS_FILES%"=="" SET QUARTUS_FILES=%PROJECT_NAME%.sv
+
+ECHO %QUARTUS_COMPILE%
+ECHO %QUARTUS_ARCHIVE%
+ECHO %QUARTUS_FILES%
+
+:: Quartus sequence
+IF NOT EXIST %PROJECT_DIR% mkdir %PROJECT_DIR%
+for %%I in (%QUARTUS_FILES%) do copy %%I %PROJECT_DIR%
+cd /D %PROJECT_DIR%
+%QUARTUS_DIR%\quartus_sh -t %CREATE_PROJECT_TCL% -project %PROJECT_NAME% -sv "%QUARTUS_FILES%" %QUARTUS_COMPILE% %QUARTUS_ARCHIVE%
+GOTO END
+
+rem %MODELSIM_ROOTDIR%\vsim
+
+:HELP
+ECHO Usage: %~0 ^<project_name^> [options]
+ECHO     -a    Archive project
+ECHO     -c    Full compilation of project
+ECHO     -d    Set project root directory (current by default)
+ECHO     -f    SystemVerilog files for adding to project (example: "top.sv sum.sv")
+ECHO     -h    Prints this help
+ECHO     -s    Analysis ^& Synthesis of project
+
+:END
