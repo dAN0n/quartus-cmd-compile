@@ -49,6 +49,10 @@ ELSE IF "%~1"=="-f" (
 ELSE IF "%~1"=="-h" (
     GOTO HELP
 )^
+ELSE IF "%~1"=="-m" (
+    IF NOT "%~2"=="" SET QUARTUS_MISC_FILES=%~2
+    SHIFT
+)^
 ELSE IF "%~1"=="-s" (
     SET QUARTUS_COMPILE=-analysis
     SHIFT
@@ -69,9 +73,13 @@ IF NOT "%QUARTUS_SOF%"=="" SET QUARTUS_COMPILE=-compile
 IF NOT EXIST "%PROJECT_DIR%" mkdir %PROJECT_DIR%
 for %%I in (%QUARTUS_FILES%) do copy %%I %PROJECT_DIR%
 
+:: COPY MISC FILES AND ADD MISC FLAG
+IF NOT "%QUARTUS_MISC_FILES%"=="" for %%I in (%QUARTUS_MISC_FILES%) do copy %%I %PROJECT_DIR%
+IF NOT "%QUARTUS_MISC_FILES%"=="" SET QUARTUS_MISC_FILES=-misc "%QUARTUS_MISC_FILES%"
+
 :: RUN QUARTUS TCL SCRIPT
 cd /D %PROJECT_DIR%
-%QUARTUS_DIR%\quartus_sh -t %CREATE_PROJECT_TCL% -project %PROJECT_NAME% -sv "%QUARTUS_FILES%" %QUARTUS_COMPILE% %QUARTUS_ARCHIVE%
+%QUARTUS_DIR%\quartus_sh -t %CREATE_PROJECT_TCL% -project %PROJECT_NAME% -sv "%QUARTUS_FILES%" %QUARTUS_COMPILE% %QUARTUS_ARCHIVE% %QUARTUS_MISC_FILES%
 
 :: COPY SOF/QAR FILES TO QUARTUS_SOF DIRECTORY
 IF NOT "%QUARTUS_SOF%"=="" (
@@ -92,6 +100,7 @@ ECHO     -d    Set project root directory (current by default)
 ECHO     -e    Copy .sof file to directory (with .qar if -a is set)
 ECHO     -f    SystemVerilog files for adding to project (example: "top.sv sum.sv")
 ECHO     -h    Prints this help
+ECHO     -m    Misc files for adding to archive (example: "top.do top.wlf")
 ECHO     -s    Analysis ^& Synthesis of project
 
 :END

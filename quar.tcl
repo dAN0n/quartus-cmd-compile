@@ -4,6 +4,7 @@ load_package flow
 set options {\
     { "project.arg" "" "Project name" }\
     { "sv.arg" "" "Project verilog files array" }\
+    { "misc.arg" "" "Project misc files array" }\
     { "analysis" "" "Project Analysis & Synthesis" }\
     { "compile" "" "Project full compilation" }\
     { "archive" "" "Archive project to qar file" }\
@@ -28,6 +29,14 @@ if { ![project_exists $opts(project)] } {
     project_open $opts(project)
     foreach file $opts(sv) {
         set_global_assignment -name SYSTEMVERILOG_FILE $file
+    }
+    project_close
+}
+
+if {$opts(misc) ne ""} {
+    project_open $opts(project)
+    foreach file $opts(misc) {
+        set_global_assignment -name MISC_FILE $file
     }
     project_close
 }
