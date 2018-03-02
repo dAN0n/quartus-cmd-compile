@@ -2,7 +2,6 @@
 SETLOCAL ENABLEEXTENSIONS
 
 rem TODO моделсим часть
-rem TODO вынос sof из проекта
 rem TODO конвеерное исполнение, скорее всего отдельный скрипт
 
 :: FIND MODELSIM DIRECTORY
