@@ -39,6 +39,10 @@ ELSE IF "%~1"=="-d" (
     IF NOT "%~2"=="" SET PROJECT_DIR=%~2\%PROJECT_NAME%
     SHIFT
 )^
+ELSE IF "%~1"=="-e" (
+    IF NOT "%~2"=="" SET QUARTUS_SOF=%~2
+    SHIFT
+)^
 ELSE IF "%~1"=="-f" (
     IF NOT "%~2"=="" SET QUARTUS_FILES=%~2
     SHIFT
@@ -59,6 +63,9 @@ GOTO ARGUMENTS
 :: SET TOP LEVEL ENTITY FILENAME IF NOT SPECIFIED
 IF "%QUARTUS_FILES%"=="" SET QUARTUS_FILES=%PROJECT_NAME%.sv
 
+:: SET FULL COMPILATION IF SOF FILE REQUESTED
+IF NOT "%QUARTUS_SOF%"=="" SET QUARTUS_COMPILE=-compile
+
 :: CREATE PROJECT DIRECTORY AND COPY SV FILES
 IF NOT EXIST %PROJECT_DIR% mkdir %PROJECT_DIR%
 for %%I in (%QUARTUS_FILES%) do copy %%I %PROJECT_DIR%
@@ -66,6 +73,13 @@ for %%I in (%QUARTUS_FILES%) do copy %%I %PROJECT_DIR%
 :: RUN QUARTUS TCL SCRIPT
 cd /D %PROJECT_DIR%
 %QUARTUS_DIR%\quartus_sh -t %CREATE_PROJECT_TCL% -project %PROJECT_NAME% -sv "%QUARTUS_FILES%" %QUARTUS_COMPILE% %QUARTUS_ARCHIVE%
+
+:: COPY SOF/QAR FILES TO QUARTUS_SOF DIRECTORY
+IF NOT "%QUARTUS_SOF%"=="" (
+    IF NOT EXIST %QUARTUS_SOF% mkdir %QUARTUS_SOF%
+    copy %PROJECT_DIR%\output_files\%PROJECT_NAME%.sof %QUARTUS_SOF%
+    IF NOT "%QUARTUS_ARCHIVE%"=="" copy %PROJECT_DIR%\%PROJECT_NAME%.qar %QUARTUS_SOF%
+)
 GOTO END
 
 rem %MODELSIM_ROOTDIR%\vsim
@@ -76,6 +90,7 @@ ECHO Usage: %~0 ^<project_name^> [options]
 ECHO     -a    Archive project
 ECHO     -c    Full compilation of project
 ECHO     -d    Set project root directory (current by default)
+ECHO     -e    Copy .sof file to directory (with .qar if -a is set)
 ECHO     -f    SystemVerilog files for adding to project (example: "top.sv sum.sv")
 ECHO     -h    Prints this help
 ECHO     -s    Analysis ^& Synthesis of project
