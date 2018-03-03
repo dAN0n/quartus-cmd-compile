@@ -2,7 +2,6 @@
 SETLOCAL ENABLEEXTENSIONS
 
 rem TODO добавить открытие только wlf файла, мб не нужно
-rem TODO добавить открытие без дефолтного -f <project_name>.sv
 rem TODO конвеерное исполнение, скорее всего отдельный скрипт
 
 :: FIND MODELSIM DIRECTORY
@@ -148,32 +147,42 @@ cd /D %MS_PROJECT_DIR%
 IF EXIST "%PROJECT_NAME%.mpf" %MODELSIM_DIR%\vsim -do "do ./%MS_TCL_NAME% %PROJECT_NAME% {%PROJECT_FILES%} {%PROJECT_MISC_FILES%}"
 IF NOT EXIST "%PROJECT_NAME%.mpf" %MODELSIM_DIR%\vsim -do "project new . %PROJECT_NAME%; do ./%MS_TCL_NAME% %PROJECT_NAME% {%PROJECT_FILES%} {%PROJECT_MISC_FILES%}"
 IF NOT "%CREATE_VCD%"=="" %MODELSIM_DIR%\vsim -c -do "project open %PROJECT_NAME%; wlf2vcd ./src/%PROJECT_NAME%.wlf -o ./src/%PROJECT_NAME%.vcd; quit"
+
+:: COPY WLF/VCD FILES TO FILE_EXPORT DIRECTORY
+IF NOT "%FILE_EXPORT%"=="" (
+    IF NOT EXIST "%FILE_EXPORT%" mkdir %FILE_EXPORT%
+    copy %MS_SRCDIR%\%PROJECT_NAME%.wlf %FILE_EXPORT%
+    IF NOT "%CREATE_VCD%"=="" copy %MS_SRCDIR%\%PROJECT_NAME%.vcd %FILE_EXPORT%
+)
 GOTO END
 
 :HELP
 ::HELP MESSAGE
 ECHO Usage: %~0 ^<project_name^> [-z] [options]
-ECHO
+ECHO.
 ECHO     -h    Prints this help
 ECHO     -z    Run ModelSim instead of Quartus II
-ECHO
+ECHO.
 ECHO Quartus II flags
 ECHO ----------------
-ECHO     -a    Archive project
-ECHO     -c    Run full compilation of project
-ECHO     -d    Set project root directory (current by default)
-ECHO     -e    Copy .sof file to directory (with .qar if -a is set)
-ECHO     -f    SystemVerilog files for adding to project (^<project_name^>.sv by default; example: "1.sv 2.sv")
-ECHO     -m    Misc files for adding to archive (example: "top.do top.wlf")
-ECHO     -o    Open existing project without copying files by -f flag
-ECHO     -s    Run Analysis ^& Synthesis of project
-ECHO
+ECHO     -a          Archive project
+ECHO     -c          Run full compilation of project
+ECHO     -d "dir"    Set project root directory (current by default)
+ECHO     -e "dir"    Copy .sof file to directory (with .qar if -a is set)
+ECHO     -f "file"   SystemVerilog files for adding to project
+ECHO                   (^<project_name^>.sv by default; example: "1.sv 2.sv")
+ECHO     -m "file"   Misc files for adding to archive (example: "top.do top.wlf")
+ECHO     -o          Open existing project without copying files by -f flag
+ECHO     -s          Run Analysis ^& Synthesis of project
+ECHO.
 ECHO ModelSim flags
 ECHO --------------
-ECHO     -d    Set project root directory (current by default)
-ECHO     -f    SystemVerilog files for adding to project (^<project_name^>.sv by default; example: "1.sv 2.sv")
-ECHO     -m    ModelSim .do files (example: "top.do script.do")
-ECHO     -o    Open existing project without copying files by -f flag
-ECHO     -v    Create .vcd file from .wlf file in ModelSim
+ECHO     -d "dir"    Set project root directory (current by default)
+ECHO     -e "dir"    Copy .wlf file to directory (with .vcd if -v is set)
+ECHO     -f "file"   SystemVerilog files for adding to project
+ECHO                   (^<project_name^>.sv by default; example: "1.sv 2.sv")
+ECHO     -m "file"   ModelSim .do files (example: "top.do script.do")
+ECHO     -o          Open existing project without copying files by -f flag
+ECHO     -v          Create .vcd file from .wlf file in ModelSim
 
 :END
