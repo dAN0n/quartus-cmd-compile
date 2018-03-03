@@ -1,7 +1,8 @@
 @ECHO OFF
 SETLOCAL ENABLEEXTENSIONS
 
-rem TODO генерация do файла
+rem TODO добавить открытие только wlf файла, мб не нужно
+rem TODO добавить открытие без дефолтного -f <project_name>.sv
 rem TODO конвеерное исполнение, скорее всего отдельный скрипт
 
 :: FIND MODELSIM DIRECTORY
@@ -142,8 +143,6 @@ SET PROJECT_MISC_FILES=%temp_misc%
 cd /D %MS_PROJECT_DIR%
 IF EXIST "%PROJECT_NAME%.mpf" %MODELSIM_DIR%\vsim -do "do ./%MS_TCL_NAME% %PROJECT_NAME% {%PROJECT_FILES%} {%PROJECT_MISC_FILES%}"
 IF NOT EXIST "%PROJECT_NAME%.mpf" %MODELSIM_DIR%\vsim -do "project new . %PROJECT_NAME%; do ./%MS_TCL_NAME% %PROJECT_NAME% {%PROJECT_FILES%} {%PROJECT_MISC_FILES%}"
-
-ECHO %CREATE_VCD%
 IF NOT "%CREATE_VCD%"=="" %MODELSIM_DIR%\vsim -c -do "project open %PROJECT_NAME%; wlf2vcd ./src/%PROJECT_NAME%.wlf -o ./src/%PROJECT_NAME%.vcd; quit"
 GOTO END
 
@@ -154,7 +153,7 @@ ECHO     -a    Archive project
 ECHO     -c    Full compilation of project
 ECHO     -d    Set project root directory (current by default)
 ECHO     -e    Copy .sof file to directory (with .qar if -a is set)
-ECHO     -f    SystemVerilog files for adding to project (example: "top.sv sum.sv")
+ECHO     -f    SystemVerilog files for adding to project (^<project_name^>.sv by default; example: "1.sv 2.sv")
 ECHO     -h    Prints this help
 ECHO     -m    Misc files for adding to archive/ModelSim .do files (example: "top.do top.wlf")
 ECHO     -s    Analysis ^& Synthesis of project
