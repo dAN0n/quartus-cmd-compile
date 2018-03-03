@@ -3,6 +3,8 @@ proc generate_do {name} {
 	puts $tcl "# Tutorial for generate waveform in tcl"
 	puts $tcl "# From: https://www.microsemi.com/document-portal/doc_view/136364-modelsim-me-10-4c-command-reference-manual-for-libero-soc-v11-7"
 	puts $tcl "#"
+	puts $tcl "# Use \"view wave\" to show wave window if needed"
+	puts $tcl "#"
 	puts $tcl "# Use \"add wave <name>\" to add signals to wave window"
 	puts $tcl "# For example: \"add wave *\""
 	puts $tcl "#"
@@ -27,6 +29,8 @@ proc generate_do {name} {
 	puts $tcl "# For running simulation use \"run \[@\]<time>\""
 	puts $tcl "#"
 	puts $tcl "# For zooming you can use \"zoom full\" or \"zoom range <start> <end>\""
+	puts $tcl "#"
+	puts $tcl "# Use \"quit -sim\" and \"quit\" to close ModelSim after script executing"
 	close $tcl
 }
 
