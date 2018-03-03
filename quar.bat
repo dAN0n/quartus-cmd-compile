@@ -59,6 +59,10 @@ ELSE IF "%~1"=="-m" (
     IF NOT "%~2"=="" SET PROJECT_MISC_FILES=%~2
     SHIFT
 )^
+ELSE IF "%~1"=="-o" (
+    SET OPEN_EXISTING_PROJECT=1
+    SHIFT
+)^
 ELSE IF "%~1"=="-s" (
     SET QUARTUS_COMPILE=-analysis
     SHIFT
@@ -89,7 +93,7 @@ IF NOT "%QUARTUS_SOF%"=="" SET QUARTUS_COMPILE=-compile
 
 :: CREATE PROJECT DIRECTORY AND COPY SV FILES
 IF NOT EXIST "%PROJECT_DIR%" mkdir %PROJECT_DIR%
-FOR %%I in (%PROJECT_FILES%) do copy %%I %PROJECT_DIR%
+IF "%OPEN_EXISTING_PROJECT%"=="" FOR %%I in (%PROJECT_FILES%) do copy %%I %PROJECT_DIR%
 
 :: COPY MISC FILES
 IF NOT "%PROJECT_MISC_FILES%"=="" for %%I in (%PROJECT_MISC_FILES%) do copy %%I %PROJECT_DIR%
@@ -121,7 +125,7 @@ GOTO END
 :MODELSIM
 :: CREATE PROJECT DIRECTORY AND COPY SV/DO FILES
 IF NOT EXIST "%MS_PROJECT_DIR%" mkdir %MS_SRCDIR%
-FOR %%I in (%PROJECT_FILES%) do copy %%I %MS_SRCDIR%
+IF "%OPEN_EXISTING_PROJECT%"=="" FOR %%I in (%PROJECT_FILES%) do copy %%I %MS_SRCDIR%
 FOR %%I in (%PROJECT_MISC_FILES%) do copy %%I %MS_SRCDIR%
 
 :: COPY MAIN TCL FILE TO MS_PROJECT_DIR
@@ -148,16 +152,28 @@ GOTO END
 
 :HELP
 ::HELP MESSAGE
-ECHO Usage: %~0 ^<project_name^> [options]
+ECHO Usage: %~0 ^<project_name^> [-z] [options]
+ECHO
+ECHO     -h    Prints this help
+ECHO     -z    Run ModelSim instead of Quartus II
+ECHO
+ECHO Quartus II flags
+ECHO ----------------
 ECHO     -a    Archive project
-ECHO     -c    Full compilation of project
+ECHO     -c    Run full compilation of project
 ECHO     -d    Set project root directory (current by default)
 ECHO     -e    Copy .sof file to directory (with .qar if -a is set)
 ECHO     -f    SystemVerilog files for adding to project (^<project_name^>.sv by default; example: "1.sv 2.sv")
-ECHO     -h    Prints this help
-ECHO     -m    Misc files for adding to archive/ModelSim .do files (example: "top.do top.wlf")
-ECHO     -s    Analysis ^& Synthesis of project
+ECHO     -m    Misc files for adding to archive (example: "top.do top.wlf")
+ECHO     -o    Open existing project without copying files by -f flag
+ECHO     -s    Run Analysis ^& Synthesis of project
+ECHO
+ECHO ModelSim flags
+ECHO --------------
+ECHO     -d    Set project root directory (current by default)
+ECHO     -f    SystemVerilog files for adding to project (^<project_name^>.sv by default; example: "1.sv 2.sv")
+ECHO     -m    ModelSim .do files (example: "top.do script.do")
+ECHO     -o    Open existing project without copying files by -f flag
 ECHO     -v    Create .vcd file from .wlf file in ModelSim
-ECHO     -z    Run ModelSim instead of Quartus II
 
 :END
