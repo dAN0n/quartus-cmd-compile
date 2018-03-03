@@ -1,7 +1,6 @@
 @ECHO OFF
 SETLOCAL ENABLEEXTENSIONS
 
-rem TODO добавить открытие только wlf файла, мб не нужно
 rem TODO конвеерное исполнение, скорее всего отдельный скрипт
 
 :: FIND MODELSIM DIRECTORY
@@ -70,6 +69,10 @@ ELSE IF "%~1"=="-v" (
     SET CREATE_VCD=1
     SHIFT
 )^
+ELSE IF "%~1"=="-w" (
+    IF NOT "%~2"=="" SET OPEN_WLF=%~2
+    SHIFT
+)^
 ELSE IF "%~1"=="-z" (
     SET MS=1
     SHIFT
@@ -122,6 +125,12 @@ IF NOT "%FILE_EXPORT%"=="" (
 GOTO END
 
 :MODELSIM
+:: OPEN WLF FILE ONLY INSTEAD OF FULL PROJECT
+IF NOT "%OPEN_WLF%"=="" (
+    %MODELSIM_DIR%\vsim -view "%OPEN_WLF%"
+    GOTO END
+)
+
 :: CREATE PROJECT DIRECTORY AND COPY SV/DO FILES
 IF NOT EXIST "%MS_PROJECT_DIR%" mkdir %MS_SRCDIR%
 IF "%OPEN_EXISTING_PROJECT%"=="" FOR %%I in (%PROJECT_FILES%) do copy %%I %MS_SRCDIR%
@@ -183,6 +192,7 @@ ECHO     -f "file"   SystemVerilog files for adding to project
 ECHO                   (^<project_name^>.sv by default; example: "1.sv 2.sv")
 ECHO     -m "file"   ModelSim .do files (example: "top.do script.do")
 ECHO     -o          Open existing project without copying files by -f flag
-ECHO     -v          Create .vcd file from .wlf file in ModelSim
+ECHO     -v          Create .vcd file from .wlf file
+ECHO     -w "file"   Open .wlf file (other flags will not work with this)
 
 :END
