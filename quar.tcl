@@ -11,65 +11,64 @@ set options {\
 }
 array set opts [::cmdline::getoptions quartus(args) $options]
 
-if { ![project_exists $opts(project)] } {
-    project_new $opts(project) -family "Cyclone V" -part "5CSEMA5F31C6" -overwrite
-    set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files 
-    set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0 
-    set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85 
-    set_global_assignment -name DEVICE_FILTER_PACKAGE FBGA 
-    set_global_assignment -name DEVICE_FILTER_PIN_COUNT 896 
-    set_global_assignment -name DEVICE_FILTER_SPEED_GRADE 6 
-    set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 256    
-    foreach file $opts(sv) {
-        set_global_assignment -name SYSTEMVERILOG_FILE $file
-    }
-    puts "\nProject \"$opts(project)\" was created\n"
-    project_close
-} else {
-    project_open $opts(project)
-    foreach file $opts(sv) {
-        set_global_assignment -name SYSTEMVERILOG_FILE $file
-    }
-    project_close
+proc create_new_project {project} {
+    project_new $project -family "Cyclone V" -part "5CSEMA5F31C6" -overwrite
+    set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
+    set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
+    set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
+    set_global_assignment -name DEVICE_FILTER_PACKAGE FBGA
+    set_global_assignment -name DEVICE_FILTER_PIN_COUNT 896
+    set_global_assignment -name DEVICE_FILTER_SPEED_GRADE 6
+    set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 256
 }
 
-if {$opts(misc) ne ""} {
-    project_open $opts(project)
-    foreach file $opts(misc) {
-        set_global_assignment -name MISC_FILE $file
-    }
-    project_close
+proc add_sv_files {sv} {
+    foreach file $sv { set_global_assignment -name SYSTEMVERILOG_FILE $file }
 }
 
-if {$opts(analysis)} {
-    project_open $opts(project)
+proc add_misc_files {misc} {
+    foreach file $misc { set_global_assignment -name MISC_FILE $file }
+}
+
+proc run_analysis_and_synthesis {} {
     puts "\nExecuting Analysis & Synthesis\n"
-    if {[catch {execute_module -tool map} result]} {
+    if { [catch {execute_module -tool map} result] } {
         puts "ERROR: Analysis & Synthesis failed. See the report file.\n"
     } else {
         puts "\nAnalysis & Synthesis was successful.\n"
     }
-    project_close
 }
 
-if {$opts(compile)} {
-    project_open $opts(project)
-    puts "\nExecuting full compilation\n"
-    if {[catch {execute_flow -compile} result]} {
-        puts "ERROR: Analysis & Synthesis failed. See the report files.\n"
+proc run_full_compilation {} {
+    puts "\nExecuting Full compilation\n"
+    if { [catch {execute_flow -compile} result] } {
+        puts "ERROR: Full compilation failed. See the report files.\n"
     } else {
         puts "\nFull compilation was successful.\n"
     }
-    project_close
 }
 
-if {$opts(archive)} {
-    project_open $opts(project)
+proc create_archive {project} {
     puts "\nExecuting archivation\n"
-    if {[catch {project_archive $opts(project).qar -all_revisions -overwrite} result]} {
+    if { [catch {project_archive $project.qar -all_revisions -overwrite} result] } {
         puts "ERROR: Archivation failed. See the report files.\n"
     } else {
         puts "\nArchivation was successful.\n"
     }
-    project_close
 }
+
+if { ![project_exists $opts(project)] } {
+    create_new_project $opts(project)
+    add_sv_files $opts(sv)
+    puts "\nProject \"$opts(project)\" was created and opened\n"
+} else {
+    project_open $opts(project)
+    add_sv_files $opts(sv)
+    puts "\nProject \"$opts(project)\" was opened\n"
+}
+
+if { $opts(misc) ne "" } { add_misc_files $opts(misc) }
+if { $opts(analysis) }   { run_analysis_and_synthesis }
+if { $opts(compile) }    { run_full_compilation }
+if { $opts(archive) }    { create_archive $opts(project) }
+project_close
