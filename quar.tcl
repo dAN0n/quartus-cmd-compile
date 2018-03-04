@@ -30,19 +30,10 @@ proc add_misc_files {misc} {
     foreach file $misc { set_global_assignment -name MISC_FILE $file }
 }
 
-proc run_analysis_and_synthesis {} {
-    variable name "Analysis & Synthesis"
-    execute_command "execute_module -tool map" $name
-}
-
-proc run_full_compilation {} {
-    variable name "Full compilation"
-    execute_command "execute_flow -compile" $name
-}
-
-proc create_archive {project} {
-    variable name Archivation
-    execute_command "project_archive $project.qar -all_revisions -overwrite" $name
+proc run_quartus_jobs {project analysis compile archive} {
+    if { $analysis } { execute_command "execute_module -tool map" "Analysis & Synthesis" }
+    if { $compile }  { execute_command "execute_flow -compile" "Full compilation" }
+    if { $archive }  { execute_command "project_archive $project.qar -all_revisions -overwrite" "Archivation" }
 }
 
 proc execute_command {command name} {
@@ -65,7 +56,5 @@ if { ![project_exists $opts(project)] } {
 }
 
 if { $opts(misc) ne "" } { add_misc_files $opts(misc) }
-if { $opts(analysis) }   { run_analysis_and_synthesis }
-if { $opts(compile) }    { run_full_compilation }
-if { $opts(archive) }    { create_archive $opts(project) }
+run_quartus_jobs $opts(project) $opts(analysis) $opts(compile) $opts(archive)
 project_close
