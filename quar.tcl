@@ -31,29 +31,26 @@ proc add_misc_files {misc} {
 }
 
 proc run_analysis_and_synthesis {} {
-    puts "\nExecuting Analysis & Synthesis\n"
-    if { [catch {execute_module -tool map} result] } {
-        puts "ERROR: Analysis & Synthesis failed. See the report file.\n"
-    } else {
-        puts "\nAnalysis & Synthesis was successful.\n"
-    }
+    variable name "Analysis & Synthesis"
+    execute_command "execute_module -tool map" $name
 }
 
 proc run_full_compilation {} {
-    puts "\nExecuting Full compilation\n"
-    if { [catch {execute_flow -compile} result] } {
-        puts "ERROR: Full compilation failed. See the report files.\n"
-    } else {
-        puts "\nFull compilation was successful.\n"
-    }
+    variable name "Full compilation"
+    execute_command "execute_flow -compile" $name
 }
 
 proc create_archive {project} {
-    puts "\nExecuting archivation\n"
-    if { [catch {project_archive $project.qar -all_revisions -overwrite} result] } {
-        puts "ERROR: Archivation failed. See the report files.\n"
+    variable name Archivation
+    execute_command "project_archive $project.qar -all_revisions -overwrite" $name
+}
+
+proc execute_command {command name} {
+    puts "\nExecuting $name\n"
+    if { [catch { eval $command } result] } {
+        puts "\nERROR: $name failed. See the report files.\n"
     } else {
-        puts "\nArchivation was successful.\n"
+        puts "\n$name was successful.\n"
     }
 }
 
