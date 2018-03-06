@@ -61,6 +61,10 @@ ELSE IF "%~1"=="-o" (
     SET OPEN_EXISTING_PROJECT=1
     SHIFT
 )^
+ELSE IF "%~1"=="-p" (
+    IF NOT "%~2"=="" SET PROGRAMMER_SOF=%~2
+    SHIFT
+)^
 ELSE IF "%~1"=="-s" (
     SET QUARTUS_COMPILE=-analysis
     SHIFT
@@ -83,6 +87,8 @@ ELSE (
 GOTO ARGUMENTS
 :ENDARGUMENTS
 
+:: RUN PROGRAMMER PART IF SPECIFIED
+IF NOT "%PROGRAMMER_SOF%"=="" GOTO PROGRAMMER
 
 :: SET TOP LEVEL ENTITY FILENAME IF NOT SPECIFIED
 IF "%PROJECT_FILES%"=="" SET PROJECT_FILES=%PROJECT_NAME%.sv
@@ -122,6 +128,11 @@ IF NOT "%FILE_EXPORT%"=="" (
     copy %PROJECT_DIR%\output_files\%PROJECT_NAME%.sof %FILE_EXPORT%
     IF NOT "%QUARTUS_ARCHIVE%"=="" copy %PROJECT_DIR%\%PROJECT_NAME%.qar %FILE_EXPORT%
 )
+GOTO END
+
+:PROGRAMMER
+:: RUN PROGRAMMER WITH GIVEN SOF (2ND DEVICE)
+%QUARTUS_DIR%\quartus_pgm -m JTAG -o p;%PROGRAMMER_SOF%@2
 GOTO END
 
 :MODELSIM
@@ -182,6 +193,7 @@ ECHO     -f "file"   SystemVerilog files for adding to project
 ECHO                   (^<project_name^>.sv by default; example: "1.sv 2.sv")
 ECHO     -m "file"   Misc files for adding to archive (example: "top.do top.wlf")
 ECHO     -o          Open existing project without copying files by -f flag
+ECHO     -p "file"   Run .sof programmer (other flags will not work with this)
 ECHO     -s          Run Analysis ^& Synthesis of project
 ECHO.
 ECHO ModelSim flags
