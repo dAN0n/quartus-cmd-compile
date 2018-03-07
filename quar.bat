@@ -40,6 +40,7 @@ ELSE IF "%~1"=="-c" (
 ELSE IF "%~1"=="-d" (
     IF NOT "%~2"=="" SET PROJECT_DIR=%~2\%PROJECT_NAME%
     IF NOT "%~2"=="" SET MS_PROJECT_DIR=%~2\ms_%PROJECT_NAME%
+    IF NOT "%~2"=="" SET MS_SRCDIR=%~2\ms_%PROJECT_NAME%\src
     SHIFT
 )^
 ELSE IF "%~1"=="-e" (
